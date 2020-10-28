@@ -3,6 +3,7 @@ import Data.Map.Lazy hiding (sort,map,foldl)
 import Data.Char
 import Data.List (sort,map)
 import System.IO
+import Functions
 
 -- El Estado es una "Map" (hash String -> Int) que
 -- para cada palabra da el número de veces que la ha encontrado
