@@ -77,6 +77,7 @@ lineBreaks pMap limit pLine | (lineLength (pLine) <= limit) = [(pLine, [])]
 
 insertBlanks::Int-> Line -> Line
 insertBlanks _ ([]) = []
+insertBlanks 0 pLine = pLine 
 insertBlanks amount pLine | (length pLine == 1) = pLine
                           | (amount >= length(pLine) - 1) = insertBlanks remainder (intercalate insertion [ [x] | x <- pLine] )
                           | otherwise = insertBlanksAux amount pLine
@@ -87,15 +88,44 @@ insertBlanks amount pLine | (length pLine == 1) = pLine
                                          | otherwise = [x,Blank] ++ insertBlanksAux (amount'-1) xs
 
 
+separarYalinear::Int->String->String->HypMap->String->[String]
+separarYalinear _ [] _ _ _ = []
+separarYalinear limit pSeparar pAjustar pMap text  | (pSeparar == "NOSEPARAR" && pAjustar == "NOAJUSTAR") = separarYalinearAux1 limit textLine
+                                                   | (pSeparar == "NOSEPARAR" && pAjustar == "AJUSTAR") = separarYalinearAux2 limit textLine
+                                                   | (pSeparar == "SEPARAR" && pAjustar == "NOAJUSTAR") = separarYalinearAux3 limit textLine pMap 
+                                                   | (pSeparar == "SEPARAR" && pAjustar == "AJUSTAR") = separarYalinearAux4 limit textLine pMap
+                                                   | otherwise = [[]]
+      where textLine = string2line text 
+
+
+separarYalinearAux1::Int->Line->[String]
+separarYalinearAux1 limit textLine  |((snd partitions) == []) = [(line2string (fst partitions))]
+                                    |otherwise = (line2string (fst partitions)):(separarYalinearAux1 limit (snd partitions))
+      where partitions = breakLine limit textLine
+
+
+separarYalinearAux2::Int->Line->[String]
+separarYalinearAux2 limit textLine  | ((snd partitions) == []) = [(line2string (fst partitions))]
+                                    |otherwise = (line2string (insertBlanks filling (fst partitions))):(separarYalinearAux2 limit (snd partitions))
+      where partitions = breakLine limit textLine
+            filling = limit - (lineLength (fst partitions))
+
+separarYalinearAux3::Int->Line->HypMap->[String]
+separarYalinearAux3 limit textLine pMap | ((snd hyphenatedPartitions) == []) = [(line2string (fst hyphenatedPartitions))]
+                                        |otherwise = (line2string (fst hyphenatedPartitions)):(separarYalinearAux3 limit (snd hyphenatedPartitions) pMap)
+      where partitions = breakLine limit textLine
+            hyphenation = last (lineBreaks pMap limit (fst partitions ++ (take 1 (snd partitions))))
+            hyphenatedPartitions = (fst hyphenation, (snd hyphenation)  ++ (drop 1 (snd partitions))) 
+
+
+separarYalinearAux4::Int->Line->HypMap->[String]
+separarYalinearAux4 limit textLine pMap | ((snd hyphenatedPartitions) == []) = [(line2string (fst hyphenatedPartitions))]
+                                        |otherwise = (line2string (insertBlanks filling(fst hyphenatedPartitions))):(separarYalinearAux4 limit (snd hyphenatedPartitions) pMap)
+      where partitions = breakLine limit textLine
+            hyphenation = last (lineBreaks pMap limit (fst partitions ++ (take 1 (snd partitions))))
+            hyphenatedPartitions = (fst hyphenation, (snd hyphenation)  ++ (drop 1 (snd partitions)))
+            filling = limit - (lineLength (fst hyphenatedPartitions))
 
 isBlank:: Token -> Bool
 isBlank (Blank) = True
 isBlank (_) = False
-
-isWord:: Token -> Bool
-isWord (Word _) = True
-isWord (_) = False
-
-isHypWord:: Token -> Bool
-isHypWord (HypWord _) = True
-isHypWord (_) = False

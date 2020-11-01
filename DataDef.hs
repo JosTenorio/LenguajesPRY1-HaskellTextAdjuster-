@@ -1,6 +1,5 @@
 module DataDef where
-import Data.Map ( Map )
-
+import qualified Data.Map
 type Line = [Token]
 data Token = Word String | Blank | HypWord String
              deriving (Eq,Show)
