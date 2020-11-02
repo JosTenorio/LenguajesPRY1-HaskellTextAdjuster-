@@ -1,13 +1,22 @@
+{-          Module definition             -}
 module Functions where
 
-import Data.List ( intercalate, isSuffixOf, (\\), dropWhileEnd )
+
+{-          Imports             -}
+import Data.List (intersperse,  intercalate, isSuffixOf, (\\), dropWhileEnd )
 import DataDef (HypMap, Token(HypWord), Line, Token(Blank), Token(Word))
 import qualified Data.Map as Map
 
+
+{-          Functions             -}
+
+--Main Functions:
+
+--a)
 string2line :: String -> Line
 string2line text =  [Word x | x <- words text]
 
-
+--b)
 line2string:: Line -> String
 line2string pline =  init (line2stringAux (dropWhileEnd (== Blank) (dropWhile (== Blank) pline)))
     where line2stringAux [] = []
@@ -15,17 +24,19 @@ line2string pline =  init (line2stringAux (dropWhileEnd (== Blank) (dropWhile (=
           line2stringAux (Blank :xs) =  [' '] ++ line2stringAux (xs)
           line2stringAux (HypWord x:xs) =  x ++ ['-',' '] ++ line2stringAux (xs)
 
+--c)
 tokenLength :: Token -> Int
 tokenLength (Blank) = 1
 tokenLength (Word x) = length (x)
 tokenLength (HypWord x) = length (x) + 1 
 
-
+--d)
 lineLength :: Line -> Int
 lineLength [] = 0
 lineLength (x:[]) = tokenLength (x) 
 lineLength (x:xs) = tokenLength (x) + 1 + lineLength (xs)
 
+--e)
 breakLine :: Int -> Line -> (Line,Line)
 breakLine _ [] = ([],[])
 breakLine 1 x = ([],x)
@@ -33,8 +44,7 @@ breakLine max' remainder' = breakLineAux max' remainder' []
     where breakLineAux max remainder partition | (lineLength(partition ++ take 1 remainder) > max || remainder == []) = (partition,remainder)
                                                | otherwise   = breakLineAux max (tail remainder) (partition ++ [(head remainder)])
 
-
-
+--f)
 mergers:: [String] -> [(String, String)]
 mergers xs | (xs == []) = [("","")]
            | (length(xs) == 1) = [(head xs, "")]  
@@ -45,13 +55,7 @@ mergersAux::([String],[String]) -> [(String, String)] -> [(String, String)]
 mergersAux combination result | (length(snd(combination)) == 0) = result
                               | otherwise = mergersAux ((fst combination) ++ [head(snd combination)], tail (snd combination)) (result ++ [(concat ((fst combination)), concat (snd combination))])
 
-enHyp :: HypMap
-enHyp = Map.fromList [ ("controla",["con","tro","la"]), 
-                       ("futuro",["fu","tu","ro"]),
-                       ("presente",["pre","sen","te"]),
-                       ("maneja",["ma","ne","ja"]),
-                       ("administrativo" , ["ad", "mi", "nis", "tra", "ti", "vo"])]
-
+--g)
 hyphenate :: HypMap -> Token -> [(Token,Token)]
 hyphenate _ (Blank) = []
 hyphenate _ (HypWord _) = []
@@ -65,16 +69,14 @@ hyphenate pMap' (Word x) | (isSuffixOf "..." x) = hyphenateAux pMap' x "..."
     where   hyphenateAux pMap word punctuation | (Map.notMember (word \\ punctuation) pMap) = []
                                                | otherwise = map (\y -> (HypWord (fst y) , Word (snd y ++ punctuation))) (mergers (pMap Map.! (word \\ punctuation)))
 
-
-
+--h)
 lineBreaks :: HypMap -> Int -> Line -> [(Line,Line)]
 lineBreaks pMap limit pLine | (lineLength (pLine) <= limit) = [(pLine, [])]
                             | otherwise = [ y | y <- (fullLastWordPartition ++ [(init(pLine) ++ [fst x], [snd x]) | x <- lastWordPartitions]), lineLength (fst (y)) <= limit ]
     where lastWordPartitions = (hyphenate pMap (last(pLine)))
           fullLastWordPartition = [(init(pLine), [last(pLine)])]
 
-
-
+--i)
 insertBlanks::Int-> Line -> Line
 insertBlanks _ ([]) = []
 insertBlanks 0 pLine = pLine 
@@ -87,7 +89,11 @@ insertBlanks amount pLine | (length pLine == 1) = pLine
                                          | (isBlank(x)) = x:insertBlanksAux amount' xs
                                          | otherwise = [x,Blank] ++ insertBlanksAux (amount'-1) xs
 
+isBlank:: Token -> Bool
+isBlank (Blank) = True
+isBlank (_) = False
 
+--j)
 separarYalinear::Int->String->String->HypMap->String->[String]
 separarYalinear _  _ _ _ [] = []
 separarYalinear limit pSeparar pAjustar pMap text  | ((pSeparar == "n") && (pAjustar == "n")) = separarYalinearAux1 limit textLine
@@ -126,6 +132,18 @@ separarYalinearAux4 limit textLine pMap | ((snd hyphenatedPartitions) == []) = [
             hyphenatedPartitions = (fst hyphenation, (snd hyphenation)  ++ (drop 1 (snd partitions)))
             filling = limit - (lineLength (fst hyphenatedPartitions))
 
-isBlank:: Token -> Bool
-isBlank (Blank) = True
-isBlank (_) = False
+--MainLoop Functions:
+dict2String :: [(String, [String])] -> String
+dict2String dict | (length dict == 0) = [] 
+                 |otherwise = newLine ++ dict2String  (tail dict)
+      where newLine = fst (head dict) ++ " " ++ concat (intersperse "-" (snd (head dict))) ++ "\n"
+
+string2DictEntry::String -> (String, [String])
+string2DictEntry line = ((head separated), divison )
+      where
+            separated = words line
+            divison = words (fmap (\c -> if c=='-' then ' '; else c) (last separated))
+
+split2string::[String] -> String
+split2string split | (take 1 split  == []) = "Comando inválido" 
+                   | otherwise = concat (intersperse "\n" split) 

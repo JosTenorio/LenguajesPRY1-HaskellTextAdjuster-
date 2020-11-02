@@ -1,7 +1,12 @@
+{-          Module definition             -}
 module DataDef where
-import qualified Data.Map
+
+{-          Imports             -}
+import qualified Data.Map as Map
+
+{-          data definition             -}
 type Line = [Token]
 data Token = Word String | Blank | HypWord String
              deriving (Eq,Show)
 
-type HypMap = Data.Map.Map String [String]
+type HypMap = Map.Map String [String]

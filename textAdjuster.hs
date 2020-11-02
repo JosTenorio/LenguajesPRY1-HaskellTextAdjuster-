@@ -1,4 +1,4 @@
-
+{-          Imports             -}
 import Prelude hiding (null, lookup, map, filter)
 import qualified Data.Map as Map
 import Data.List ((\\), intercalate, intersperse)
@@ -10,12 +10,16 @@ import System.IO
       hGetLine,
       openFile )
 import DataDef (HypMap)
-import Functions (separarYalinear)
+import Functions (dict2String, split2string, string2DictEntry, separarYalinear)
 
+{-          main             -}
 main :: IO ()
 main = do 
        mainloop (Map.fromList [])
 
+{-          mainloop             -}
+
+--Iteration:
 mainloop :: HypMap -> IO ()
 mainloop dict = do
   putStr ">> "
@@ -43,7 +47,7 @@ mainloop dict = do
      ["save"] -> do 
                   let fileName = commands !! 1
                   saveDict fileName dict
-                  putStrLn ("Palabra " ++ (fst newEntry) ++ " agregada")  
+                  putStrLn ("Diccionario guardado en el archivo: " ++ fileName)  
                   mainloop dict
      ["split"] -> do
                   let text = commandLine \\ (concat ((intersperse " " [(commands !! 0),(commands !! 1),(commands !! 2),(commands !! 3)])))
@@ -61,9 +65,11 @@ mainloop dict = do
      ["exit"] -> do
                   putStrLn "Saliendo..."
      _    -> do
-            putStrLn $ "Comando desconocido: '" ++ commandLine ++ "'" 
+            putStrLn $ "Comando desconocido en la instrucción: '" ++ commandLine ++ "'" 
             mainloop dict
 
+
+--MainLoop Functions:
 loadDict :: Handle -> (HypMap,Int) -> IO (HypMap, Int)
 loadDict inh dict = do
       ineof <- hIsEOF inh
@@ -75,18 +81,3 @@ loadDict inh dict = do
 
 saveDict:: String -> HypMap -> IO ()
 saveDict fileName dict = writeFile fileName (dict2String (Map.toList dict))
-
-dict2String :: [(String, [String])] -> String
-dict2String dict | (length dict == 0) = [] 
-                 |otherwise = newLine ++ dict2String  (tail dict)
-      where newLine = fst (head dict) ++ " " ++ concat (intersperse "-" (snd (head dict))) ++ "\n"
-
-string2DictEntry::String -> (String, [String])
-string2DictEntry line = ((head separated), divison )
-      where
-            separated = words line
-            divison = words (fmap (\c -> if c=='-' then ' '; else c) (last separated))
-
-split2string::[String] -> String
-split2string split | (take 1 split  == []) = "Comando inválido" 
-                   | otherwise = concat (intersperse "\n" split) 
