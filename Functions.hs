@@ -1,6 +1,6 @@
 module Functions where
 
-import Data.List
+import Data.List ( intercalate, isSuffixOf, (\\), dropWhileEnd )
 import DataDef (HypMap, Token(HypWord), Line, Token(Blank), Token(Word))
 import qualified Data.Map as Map
 
@@ -89,11 +89,11 @@ insertBlanks amount pLine | (length pLine == 1) = pLine
 
 
 separarYalinear::Int->String->String->HypMap->String->[String]
-separarYalinear _ [] _ _ _ = []
-separarYalinear limit pSeparar pAjustar pMap text  | (pSeparar == "NOSEPARAR" && pAjustar == "NOAJUSTAR") = separarYalinearAux1 limit textLine
-                                                   | (pSeparar == "NOSEPARAR" && pAjustar == "AJUSTAR") = separarYalinearAux2 limit textLine
-                                                   | (pSeparar == "SEPARAR" && pAjustar == "NOAJUSTAR") = separarYalinearAux3 limit textLine pMap 
-                                                   | (pSeparar == "SEPARAR" && pAjustar == "AJUSTAR") = separarYalinearAux4 limit textLine pMap
+separarYalinear _  _ _ _ [] = []
+separarYalinear limit pSeparar pAjustar pMap text  | ((pSeparar == "n") && (pAjustar == "n")) = separarYalinearAux1 limit textLine
+                                                   | ((pSeparar == "n") && (pAjustar == "s")) = separarYalinearAux2 limit textLine
+                                                   | ((pSeparar == "s") && (pAjustar == "n")) = separarYalinearAux3 limit textLine pMap 
+                                                   | ((pSeparar == "s") && (pAjustar == "s")) = separarYalinearAux4 limit textLine pMap
                                                    | otherwise = [[]]
       where textLine = string2line text 
 
