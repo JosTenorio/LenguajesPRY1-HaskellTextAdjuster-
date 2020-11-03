@@ -9,6 +9,7 @@ import System.IO
       hIsEOF,
       hGetLine,
       openFile )
+import Data.Text
 import DataDef (HypMap)
 import Functions (dict2String, split2string, string2DictEntry, separarYalinear)
 
@@ -32,7 +33,7 @@ mainloop dict = do
                   inh <- openFile fileName ReadMode
                   newDict <- loadDict inh ((Map.fromList []),0)
                   hClose inh
-                  putStrLn $ "Diccionario cargado ( " ++ show(snd(newDict)) ++ " palabras cargadas)"
+                  putStrLn $ "Diccionario cargado (" ++ show(snd(newDict)) ++ " palabras cargadas)"
                   mainloop (fst(newDict))
      ["show"] -> do 
                   putStrLn "Diccionario actual: "
@@ -47,10 +48,10 @@ mainloop dict = do
      ["save"] -> do 
                   let fileName = commands !! 1
                   saveDict fileName dict
-                  putStrLn ("Diccionario guardado en el archivo: " ++ fileName)  
+                  putStrLn ("Diccionario guardado en el archivo: " ++ fileName ++ " (" ++ show(Map.size dict) ++ " palabras cargadas)")  
                   mainloop dict
      ["split"] -> do
-                  let text = commandLine \\ (concat ((intersperse " " [(commands !! 0),(commands !! 1),(commands !! 2),(commands !! 3)])))
+                  let text = concat (intersperse " " (drop 4 commands))
                   putStrLn (split2string (separarYalinear (read (commands !! 1) :: Int) (commands !! 2) (commands !! 3) dict text))
                   mainloop dict
      ["splitf"] -> do
@@ -60,7 +61,8 @@ mainloop dict = do
                   let resultString = (split2string (separarYalinear (read (commands !! 1) :: Int) (commands !! 2) (commands !! 3) dict text))
                   if (length commands == 5) then putStrLn resultString
                         else do let outputFileName = commands !! 5
-                                writeFile outputFileName resultString                            
+                                writeFile outputFileName resultString
+                  putStr "Resultado guardado en " ++ outputFileName                           
                   mainloop dict
      ["exit"] -> do
                   putStrLn "Saliendo..."
