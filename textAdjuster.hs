@@ -1,7 +1,7 @@
 {-          Imports             -}
 import Prelude hiding (null, lookup, map, filter)
 import qualified Data.Map as Map
-import Data.List ((\\), intercalate, intersperse)
+import Data.List (intercalate, intersperse)
 import System.IO
     ( Handle,
       IOMode(ReadMode),
@@ -9,9 +9,9 @@ import System.IO
       hIsEOF,
       hGetLine,
       openFile )
-import Data.Text
 import DataDef (HypMap)
 import Functions (dict2String, split2string, string2DictEntry, separarYalinear)
+import System.Directory (doesFileExist)
 
 {-          main             -}
 main :: IO ()
@@ -30,11 +30,16 @@ mainloop dict = do
   case comand of
      ["load"] -> do 
                   let fileName = commands !! 1
-                  inh <- openFile fileName ReadMode
-                  newDict <- loadDict inh ((Map.fromList []),0)
-                  hClose inh
-                  putStrLn $ "Diccionario cargado (" ++ show(snd(newDict)) ++ " palabras cargadas)"
-                  mainloop (fst(newDict))
+                  fileExists <- doesFileExist fileName
+                  if (fileExists) then  do 
+                                          inh <- openFile fileName ReadMode
+                                          newDict <- loadDict inh ((Map.fromList []),0)
+                                          hClose inh
+                                          putStrLn $ "Diccionario cargado (" ++ show(snd(newDict)) ++ " palabras cargadas)"
+                                          mainloop (fst(newDict))
+                  else do
+                        putStrLn $ "Error: El archivo " ++ fileName ++ " no existe"      
+                        mainloop (dict)
      ["show"] -> do 
                   putStrLn "Diccionario actual: "
                   putStrLn (unlines [(fst x) ++ " " ++ (intercalate "-" (snd x)) | x <- Map.toList dict])
@@ -56,13 +61,17 @@ mainloop dict = do
                   mainloop dict
      ["splitf"] -> do
                   let inputFileName = commands !! 4
-                  inh <- openFile inputFileName ReadMode
-                  text <- hGetLine inh
-                  let resultString = (split2string (separarYalinear (read (commands !! 1) :: Int) (commands !! 2) (commands !! 3) dict text))
-                  if (length commands == 5) then putStrLn resultString
-                        else do let outputFileName = commands !! 5
-                                writeFile outputFileName resultString
-                  putStr "Resultado guardado en " ++ outputFileName                           
+                  fileExists <- doesFileExist inputFileName
+                  if (fileExists) then  do 
+                                          inh <- openFile inputFileName ReadMode
+                                          text <- hGetLine inh
+                                          let resultString = (split2string (separarYalinear (read (commands !! 1) :: Int) (commands !! 2) (commands !! 3) dict text))
+                                          if (length commands == 5) then putStrLn resultString
+                                                else do let outputFileName = commands !! 5
+                                                        writeFile outputFileName resultString
+                                                        putStrLn  ("Resultado guardado en " ++ outputFileName)
+                  else do
+                        putStrLn $ "Error: El archivo " ++ inputFileName ++ " no existe"                           
                   mainloop dict
      ["exit"] -> do
                   putStrLn "Saliendo..."
