@@ -6,7 +6,7 @@ module Functions where
 import Data.List (intersperse,  intercalate, isSuffixOf, (\\), dropWhileEnd )
 import DataDef (HypMap, Token(HypWord), Line, Token(Blank), Token(Word))
 import qualified Data.Map as Map
-
+import Data.Char as Char (ord)
 
 {-          Functions             -}
 
@@ -160,3 +160,22 @@ string2DictEntry line = ((head separated), divison )
 split2string::[String] -> String
 split2string split | (take 1 split  == []) = "Comando inválido" 
                    | otherwise = concat (intersperse "\n" split) 
+
+
+normalizeText :: String -> String
+normalizeText [] = []
+normalizeText (x:xs)  | (Char.ord x == 9500 && Char.ord (head xs) == 237) = "á" ++ (normalizeText (drop 1 xs))
+                      | (Char.ord x == 9500 && Char.ord (head xs) == 9474) = "ó" ++ (normalizeText (drop 1 xs))
+                      | (Char.ord x == 9500 && Char.ord (head xs) == 161) = "í" ++ (normalizeText (drop 1 xs))
+                      | (Char.ord x == 9500 && Char.ord (head xs) == 9553) = "ú" ++ (normalizeText (drop 1 xs))
+                      | (Char.ord x == 9500 && Char.ord (head xs) == 8976) = "é" ++ (normalizeText (drop 1 xs))
+                      | otherwise = [x] ++ normalizeText xs
+
+denormalizeText :: String -> String
+denormalizeText [] = []
+denormalizeText (x:xs) | (x == 'á') = "\9500\237" ++ denormalizeText xs
+                       | (x == 'ó') = "\9500\9474" ++ denormalizeText xs
+                       | (x == 'é') = "\9500\8976" ++ denormalizeText xs
+                       | (x == 'ú') = "\9500\9553" ++ denormalizeText xs
+                       | (x == 'í') = "\9500\161" ++ denormalizeText xs
+                       | otherwise = [x] ++ denormalizeText xs
