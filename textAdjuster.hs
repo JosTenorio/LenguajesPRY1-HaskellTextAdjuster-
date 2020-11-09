@@ -42,7 +42,7 @@ mainloop dict = do
                         putStrLn $ "Error: El archivo " ++ fileName ++ " no existe"      
                         mainloop (dict)
      ["show"] -> do 
-                  putStrLn "Diccionario actual: "
+                  putStrLn "Diccionario actual:\n"
                   putStrLn (unlines [(fst x) ++ " " ++ (intercalate "-" (snd x)) | x <- Map.toList dict])
                   mainloop dict
      ["ins"] -> do 
@@ -54,12 +54,12 @@ mainloop dict = do
      ["save"] -> do 
                   let fileName = commands !! 1
                   saveDict fileName dict
-                  putStrLn ("Diccionario guardado en el archivo: " ++ fileName ++ " (" ++ show(Map.size dict) ++ " palabras cargadas)")  
+                  putStrLn ("Diccionario guardado en el archivo: " ++ fileName ++ " (" ++ show(Map.size dict) ++ " palabras guardadas)")  
                   mainloop dict
      ["split"] -> do
                   let text = concat (intersperse " " (drop 4 commands))
-                  putStrLn $ "Texto ajustado: "
-                  putStrLn (split2string (separarYalinear (read (commands !! 1) :: Int) (commands !! 2) (commands !! 3) dict text))
+                  putStrLn $ "Texto ajustado: \n"
+                  putStrLn $(split2string (separarYalinear (read (commands !! 1) :: Int) (commands !! 2) (commands !! 3) dict text)) ++ "\n"
                   mainloop dict
      ["splitf"] -> do
                   let inputFileName = commands !! 4
@@ -68,8 +68,8 @@ mainloop dict = do
                                           inh <- openFile inputFileName ReadMode
                                           text <- hGetLine inh
                                           let resultString = (split2string (separarYalinear (read (commands !! 1) :: Int) (commands !! 2) (commands !! 3) dict (normalizeText text)))
-                                          if (length commands == 5) then do putStrLn $ "Texto ajustado: " ++ "\n"
-                                                                            putStrLn resultString
+                                          if (length commands == 5) then do putStrLn $ "Texto ajustado: \n"
+                                                                            putStrLn $ resultString ++ "\n"
                                                 else do let outputFileName = commands !! 5
                                                         writeFile outputFileName (denormalizeText resultString)
                                                         putStrLn  ("Resultado guardado en " ++ outputFileName)
